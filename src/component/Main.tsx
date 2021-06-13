@@ -38,19 +38,23 @@ function Main() {
 			let file = new Blob([new Uint8Array(Buffer.from(data, 'binary'))], {type: 'image/png'})
 			let fd = new FormData();
 			fd.append("file", file, "image.png");
-
-			let OCR_Response = await fetch(`https://${ENDPOINT}/ocr`, {
-				method: "POST",
-				headers: {},
-				body: fd
-			});
-
-			let OCR_Result: {result?: string, detail?: string} = await OCR_Response.json();
-			if (OCR_Result.result)
-				setDisplay(OCR_Result.result);
-			else
-				setDisplay(OCR_Result.detail);
-			viewRef.current.play();
+			
+			try {
+				let OCR_Response = await fetch(`https://${ENDPOINT}/ocr`, {
+					method: "POST",
+					headers: {},
+					body: fd
+				});
+	
+				let OCR_Result: {result?: string, detail?: string} = await OCR_Response.json();
+				if (OCR_Result.result)
+					setDisplay(OCR_Result.result);
+				else
+					setDisplay(OCR_Result.detail);
+				viewRef.current.play();
+			} catch (e) {
+				setDisplay(e);
+			}
 		}
 	}
 
