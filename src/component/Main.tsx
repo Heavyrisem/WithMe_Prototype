@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import '../style/Main.css';
 
+const ENDPOINT = 'withme.heavyrisem.xyz';
+
 function Main() {
 	const [Display, setDisplay] = useState<string>();
 	const viewRef = useRef<HTMLVideoElement>(null);
@@ -25,6 +27,8 @@ function Main() {
 
 	async function Capture() {
 		if (viewRef.current) {
+			viewRef.current.pause();
+			setDisplay("Loading ...");
 			let cv = document.createElement('canvas');
 			cv.width = viewRef.current.videoWidth;
 			cv.height = viewRef.current.videoHeight;
@@ -35,7 +39,7 @@ function Main() {
 			let fd = new FormData();
 			fd.append("file", file, "image.png");
 
-			let OCR_Response = await fetch(`https://${process.env.ENDPOINT}/ocr`, {
+			let OCR_Response = await fetch(`https://${ENDPOINT}/ocr`, {
 				method: "POST",
 				headers: {},
 				body: fd
@@ -46,6 +50,7 @@ function Main() {
 				setDisplay(OCR_Result.result);
 			else
 				setDisplay(OCR_Result.detail);
+			viewRef.current.play();
 		}
 	}
 
