@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import '../style/Main.css';
 
-const ENDPOINT = 'withme.heavyrisem.xyz';
+const ENDPOINT = '127.0.0.1:3001';
 
 function Main() {
 	const [Display, setDisplay] = useState<string>();
 	const viewRef = useRef<HTMLVideoElement>(null);
+	const audioRef = useRef<HTMLAudioElement>(null);
 
 	useEffect(StartRec, []);
 
@@ -26,7 +27,7 @@ function Main() {
 	}
 
 	async function Capture() {
-		if (viewRef.current) {
+		if (viewRef.current && audioRef.current) {
 			viewRef.current.pause();
 			setDisplay("Loading ...");
 			let cv = document.createElement('canvas');
@@ -47,10 +48,25 @@ function Main() {
 				});
 	
 				let OCR_Result: {result?: string, detail?: string} = await OCR_Response.json();
-				if (OCR_Result.result)
+				if (OCR_Result.result) {
 					setDisplay(OCR_Result.result);
+					console.log(OCR_Result.result)
+					let TTS_Response = await fetch(`https://${ENDPOINT}/tts`, {
+						method: "POST",
+						body: JSON.stringify({text: OCR_Result.result})
+					});
+	
+					let TTS_Result: {result?: string, detail?: string} = await TTS_Response.json();
+					if (TTS_Result.result) {
+						audioRef.current.src = "data:audio/mp3;base64,"+TTS_Result.result;
+						audioRef.current.play();
+					} else {
+						setDisplay(TTS_Result.detail);
+					}
+				}
 				else
 					setDisplay(OCR_Result.detail);
+
 				viewRef.current.play();
 			} catch (e) {
 				setDisplay(e);
@@ -65,7 +81,15 @@ function Main() {
 			<div className="Bottom">
 
 				<div className="row">
-					<span className="TextResult">{Display}</span>
+					<span className="TextResult">
+						{Display&&
+						(<>
+							{Display} 
+							<br />
+							<audio playsInline controls ref={audioRef} />
+						</>)
+						}
+					</span>
 				</div>
 
 				<div className="row">
