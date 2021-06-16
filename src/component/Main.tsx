@@ -82,13 +82,9 @@ function Main() {
 
 				<div className="row">
 					<span className="TextResult">
-						{Display&&
-						(<>
-							{Display} 
-							<br />
-							<audio playsInline controls ref={audioRef} />
-						</>)
-						}
+						{Display}
+						<br />
+						<audio playsInline controls ref={audioRef} />
 					</span>
 				</div>
 
