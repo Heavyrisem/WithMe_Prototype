@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import '../style/Main.css';
 
-const ENDPOINT = '127.0.0.1:3001';
+const ENDPOINT = 'withme.heavyrisem.xyz';
 
 function Main() {
 	const [Display, setDisplay] = useState<string>();
