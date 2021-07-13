@@ -1,90 +1,79 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useReactMediaRecorder } from "react-media-recorder";
 import '../style/Main.css';
+import Camera from './Camera';
 
 const ENDPOINT = 'withme.heavyrisem.xyz';
 
 function Main() {
 	const [Display, setDisplay] = useState<string>();
-	const viewRef = useRef<HTMLVideoElement>(null);
 	const audioRef = useRef<HTMLAudioElement>(null);
 
-	useEffect(StartRec, []);
+	// const [audioStream, setaudioStream] = useState<MediaStreamTrack>(new MediaStreamTrack());
+	const [isRecodingAudio, setisRecodingAudio] = useState<boolean>(false);
+	// const {
+	//   status,
+	//   startRecording,
+	//   stopRecording,
+	//   mediaBlobUrl,
+	// } = useReactMediaRecorder({ audio: {sampleRate: 1} });
 
-	function StartRec() {
-		let constraints = { audio: false, video: { width: {ideal: 9999}, height: {ideal: 9999}, facingMode: "environment"} };
-		if (!navigator.mediaDevices) return;
-		navigator.mediaDevices.getUserMedia(constraints).then(media => {
-			if (viewRef.current) {
-				viewRef.current.srcObject = media;
-				viewRef.current.onloadedmetadata = (e) => {
-					if (viewRef.current) viewRef.current.play();
-				}
-			}
-		}).catch(e => {
-			console.log(e);
-			alert("Err" + e);
-		})
-	}
 
-	async function Capture() {
-		if (viewRef.current && audioRef.current) {
-			viewRef.current.pause();
-			setDisplay("Loading ...");
-			let cv = document.createElement('canvas');
-			cv.width = viewRef.current.videoWidth;
-			cv.height = viewRef.current.videoHeight;
-			cv.getContext('2d')?.drawImage(viewRef.current, 0, 0);
 
-			let data = atob(cv.toDataURL('image/png').split(',')[1]);
-			let file = new Blob([new Uint8Array(Buffer.from(data, 'binary'))], {type: 'image/png'})
-			let fd = new FormData();
-			fd.append("file", file, "image.png");
-			
-			try {
-				let OCR_Response = await fetch(`https://${ENDPOINT}/ocr`, {
-					method: "POST",
-					headers: {},
-					body: fd
-				});
-	
-				let OCR_Result: {result?: string, detail?: string} = await OCR_Response.json();
-				if (OCR_Result.result) {
-					setDisplay(OCR_Result.result);
-					console.log(OCR_Result.result)
-					let TTS_Response = await fetch(`https://${ENDPOINT}/tts`, {
-						method: "POST",
-						body: JSON.stringify({text: OCR_Result.result})
-					});
-	
-					let TTS_Result: {result?: string, detail?: string} = await TTS_Response.json();
-					if (TTS_Result.result) {
-						audioRef.current.src = "data:audio/mp3;base64,"+TTS_Result.result;
-						audioRef.current.play();
-					} else {
-						setDisplay(TTS_Result.detail);
-					}
-				}
-				else
-					setDisplay(OCR_Result.detail);
+	// useEffect(() => {
+	// 	(async() => {
+	// 		if (mediaBlobUrl) {
+	// 			console.log(mediaBlobUrl);
+	// 			let blob = await fetch(mediaBlobUrl).then(r => r.blob());
+	// 			console.log(blob)
+	// 			let reader = new FileReader();
+	// 			reader.readAsDataURL(blob);
+	// 			reader.onload = () => {
+	// 				let base64data = reader.result;
+	// 				console.log(base64data);
+	// 			}
+	// 		}
+	// 	})();
+	// }, [mediaBlobUrl])
 
-				viewRef.current.play();
-			} catch (e) {
-				setDisplay(e);
-			}
-		}
-	}
+
+	// async function MicRec() {
+	// 	if (isRecodingAudio) {
+	// 		stopRecording();
+	// 		setisRecodingAudio(false);
+	// 		console.log(status, "Rec stop");
+	// 		// if (audioRef.current && mediaBlobUrl) audioRef.current.src=mediaBlobUrl;
+	// 	} else {
+	// 		startRecording();
+	// 		setisRecodingAudio(true);
+	// 		console.log(status, "Rec start");
+	// 	}
+	// 	// let constraints = { audio: true, video: false };
+		
+	// 	// if (!navigator.mediaDevices) return;
+	// 	// navigator.mediaDevices.getUserMedia(constraints).then(media => {
+	// 	// 	let chunks = [];
+
+	// 	// 	const recoder = new window.MediaRecorder(media);
+	// 	// 	recoder.
+	// 	// }).catch(e => {
+	// 	// 	console.log(e);
+	// 	// 	alert("Err" + e);
+	// 	// })
+	// }
 
 	return (
 		<div className="Comp">
-			<video ref={viewRef} playsInline></video>
+			<Camera  />
 
 			<div className="Bottom">
 
 				<div className="row">
 					<span className="TextResult">
 						{Display}
+						{/* {status} */}
 						<br />
-						<audio playsInline controls ref={audioRef} />
+						<audio playsInline controls autoPlay ref={audioRef} />
 					</span>
 				</div>
 
@@ -92,6 +81,7 @@ function Main() {
 					<div className="Shutter" onClick={Capture}>
 						<div className="ShutterBall"></div>
 					</div>
+      				{/* <button onClick={MicRec}>Recording</button> */}
 				</div>
 
 
@@ -100,5 +90,6 @@ function Main() {
 		</div>
 	);
 }
+
 
 export default Main;
